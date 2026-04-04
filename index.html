@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chuoiray Hub | Blox Fruits Script</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* Galaxy Color Palette */
+    --bg: #050014; /* Không gian đen tím sâu */
+    --fg: #f0ede8;
+    --accent: #9d4edd;  /* Tím Galaxy */
+    --accent2: #ff007f; /* Hồng Neon */
+    --accent3: #00d4ff; /* Xanh Cyan */
+    --muted: #241b3d;
+    --blob-color: rgba(157, 78, 221, 0.4);
+    --blob2-color: rgba(255, 0, 127, 0.3);
+    --blob3-color: rgba(0, 212, 255, 0.3);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* Hiệu ứng hạt sao đi theo chuột */
+  .mouse-star {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, #fff 10%, var(--accent3) 50%, transparent 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 0 10px var(--accent3), 0 0 20px var(--accent2);
+    animation: starFade 1s linear forwards;
+  }
+
+  @keyframes starFade {
+    0% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(0.1) rotate(180deg) translateY(40px) translateX(20px); opacity: 0; }
+  }
+
+  /* Nền sao tĩnh */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(1px 1px at 10% 20%, white, transparent),
+      radial-gradient(2px 2px at 40% 50%, #ff007f, transparent),
+      radial-gradient(1.5px 1.5px at 80% 30%, #00d4ff, transparent),
+      radial-gradient(2px 2px at 70% 80%, #9d4edd, transparent),
+      radial-gradient(1px 1px at 30% 90%, white, transparent);
+    background-size: 250px 250px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1;
+    animation: twinkle 10s infinite linear;
+  }
+
+  @keyframes twinkle {
+    0% { opacity: 0.3; background-position: 0 0; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0.3; background-position: 100px 100px; }
+  }
+
+  main { position: relative; z-index: 2; }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Tinh vân (Nebula) */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.6;
+    animation: float 10s ease-in-out infinite;
+  }
+  .hero-orb:nth-child(1) { width: 500px; height: 500px; background: var(--blob-color); top: -100px; left: -150px; animation-delay: 0s; }
+  .hero-orb:nth-child(2) { width: 400px; height: 400px; background: var(--blob2-color); bottom: -80px; right: -100px; animation-delay: -3s; }
+  .hero-orb:nth-child(3) { width: 300px; height: 300px; background: var(--blob3-color); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-40px) scale(1.1); }
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    color: var(--accent3);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px var(--accent3);
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 18vw, 12rem);
+    line-height: 0.88;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+    position: relative;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.4s forwards;
+    text-transform: uppercase;
+  }
+
+  .hero-title span {
+    display: block;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0px 0px 30px rgba(157, 78, 221, 0.4);
+  }
+
+  .hero-sub {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 400;
+    color: rgba(240,237,232,0.7);
+    letter-spacing: 0.05em;
+    margin-top: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.6s forwards;
+    max-width: 600px;
+    line-height: 1.5;
+  }
+
+  .hero-sub strong { 
+    color: #fff; 
+    font-weight: 700; 
+    text-shadow: 0 0 8px var(--accent);
+  }
+
+  .hero-actions {
+    margin-top: 3rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.8s forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1rem 2.5rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
+  }
+  .btn-primary:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 10px 30px rgba(255, 0, 127, 0.6); 
+    filter: brightness(1.2);
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(5px);
+    color: var(--fg);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .btn-ghost:hover { 
+    background: rgba(255,255,255,0.1);
+    border-color: var(--accent3); 
+    transform: translateY(-3px); 
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); 
+  }
+
+  .marquee-wrap {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(157, 78, 221, 0.3);
+    border-bottom: 1px solid rgba(157, 78, 221, 0.3);
+    padding: 1.2rem 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+  .marquee {
+    display: flex;
+    gap: 3rem;
+    animation: marquee 15s linear infinite;
+    white-space: nowrap;
+  }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+  .marquee-item.accent { color: var(--accent3); text-shadow: 0 0 10px var(--accent3);}
+  .marquee-item.accent2 { color: var(--accent2); text-shadow: 0 0 10px var(--accent2);}
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .section {
+    padding: 6rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .section-tag::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--accent3);
+    box-shadow: 0 0 10px var(--accent3);
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: 0.03em;
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .feature-card:hover { 
+    background: rgba(157, 78, 221, 0.1); 
+    border-color: rgba(157, 78, 221, 0.4);
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+  }
+  .feature-card:hover::after { transform: scaleX(1); }
+
+  .feature-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+  }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.8rem;
+    color: #fff;
+  }
+
+  .feature-desc {
+    font-size: 0.85rem;
+    color: rgba(240,237,232,0.6);
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  footer {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: transparent;
+  }
+
+  .footer-copy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(240,237,232,0.4);
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,0,20,0.85);
+    backdrop-filter: blur(15px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: #0f0a1c;
+    border: 1px solid rgba(157, 78, 221, 0.4);
+    border-radius: 12px;
+    padding: 3rem;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s ease;
+    box-shadow: 0 0 50px rgba(157, 78, 221, 0.3);
+  }
+  .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--accent2);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .modal-close:hover { transform: scale(1.2); color: #fff; }
+
+  .code-box {
+    background: rgba(0,0,0,0.5);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #00d4ff;
+    word-wrap: break-word;
+    margin-top: 1rem;
+    user-select: all;
+  }
+
+  @media (max-width: 600px) {
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-orb"></div>
+      <div class="hero-orb"></div>
+      <div class="hero-orb"></div>
+    </div>
+
+    <p class="hero-eyebrow">✦ Bản Hack Blox Fruits Đỉnh Cao Nhất✦</p>
+    <h1 class="hero-title">
+      Chuoiray<br>
+      <span>Hub</span>
+    </h1>
+    <p class="hero-sub">
+      Khám phá dải ngân hà sức mạnh với Script Blox Fruits tối ưu nhất.<br> 
+      Được thiết kế và phát triển bởi <strong>veltrixiannomercy</strong> & <strong>hellocun.vn</strong> 
+    </p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="open-download">Lấy Script Ngay</button>
+      <a href="https://discord.gg/XjbBtBBHgR" target="_blank" class="btn btn-ghost">Tham Gia Discord</a>
+    </div>
+  </section>
+
+  <div class="marquee-wrap">
+    <div class="marquee">
+      <span class="marquee-item accent">CHUOIRAY HUB</span>
+      <span class="marquee-item">AUTO FARM LEVEL TỐI ƯU</span>
+      <span class="marquee-item accent2">AUTO RAID SIÊU NHANH</span>
+      <span class="marquee-item">FRUIT ESP & SNIPER</span>
+      <span class="marquee-item accent">ANTI-BAN THẾ HỆ MỚI</span>
+      <span class="marquee-item">GIAO DIỆN MƯỢT MÀ</span>
+      <span class="marquee-item accent">CHUOIRAY HUB</span>
+      <span class="marquee-item">AUTO FARM LEVEL TỐI ƯU</span>
+      <span class="marquee-item accent2">AUTO RAID SIÊU NHANH</span>
+      <span class="marquee-item">FRUIT ESP & SNIPER</span>
+      <span class="marquee-item accent">ANTI-BAN THẾ HỆ MỚI</span>
+      <span class="marquee-item">GIAO DIỆN MƯỢT MÀ</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <p class="section-tag">Tại sao chọn Chuoiray Hub?</p>
+    <h2 class="section-title">Sức mạnh vượt trội từ<br><span style="color:var(--accent3)">Vũ trụ Blox Fruits</span></h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <div class="feature-title">Script nhẹ</div>
+        <div class="feature-desc">Hoạt động trơn tru trên mọi thiết bị. FPS được tối ưu hóa tối đa, không giật lag ngay cả khi Auto Farm 24/7.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">An Toàn Tuyệt Đối</div>
+        <div class="feature-desc">Hệ thống Bypass Anti-Cheat hiện đại nhất. Tự động ngắt khi phát hiện report, bảo vệ acc của bạn 100%.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Tính Năng Tự Động Hóa</div>
+        <div class="feature-desc">Auto Farm Level, Auto Boss, Auto Raid, ESP Trái Ác Quỷ... Mọi thứ bạn cần để bá chủ đại dương đều có ở đây.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-copy">© 2026 Chuoiray Hub - Developed by veltrixiannomercy & hellocun.vn</div>
+    <div class="footer-logo">Chuoiray</div>
+  </footer>
+</main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-title" style="color: #fff;">Script của bạn</div>
+    <div class="modal-desc">Copy đoạn code bên dưới và dán vào Executor của bạn</div>
+    <div id="modal-body">
+      <div class="code-box">
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/huychuoi-hub/chuoirayhub/refs/heads/main/chuoirayhub-bloxfruits.lua"))()
+      </div>
+      <p style="margin-top: 1rem; font-family: 'Syne', sans-serif; font-size: 0.85rem; color: rgba(255,255,255,0.5);">* Hỗ trợ trên Arceus X, Delta, Fluxus, Evon và mọi PC Executor.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Hiệu ứng ngôi sao dải ngân hà chạy theo chuột
+  document.addEventListener('mousemove', function(e) {
+    // Giới hạn số lượng sao sinh ra để không gây lag (tạo 1 sao mỗi vài pixel di chuyển)
+    if (Math.random() > 0.6) {
+      let star = document.createElement('div');
+      star.className = 'mouse-star';
+      
+      // Random kích thước sao
+      let size = Math.random() * 8 + 4;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      
+      // Đặt vị trí tại con trỏ
+      star.style.left = e.pageX - size/2 + 'px';
+      star.style.top = e.pageY - size/2 + 'px';
+      
+      // Random màu sắc giữa Xanh Cyan và Hồng Neon
+      let colors = ['var(--accent3)', 'var(--accent2)', '#ffffff'];
+      let color = colors[Math.floor(Math.random() * colors.length)];
+      star.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+      
+      document.body.appendChild(star);
+      
+      // Xóa sao sau khi hoàn thành animation (1s)
+      setTimeout(() => {
+        star.remove();
+      }, 1000);
+    }
+  });
+
+  // Modal logic
+  const modal = document.getElementById('modal');
+  const btnOpen = document.getElementById('open-download');
+  const btnClose = document.getElementById('modal-close');
+
+  btnOpen.addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.classList.add('active');
+  });
+
+  btnClose.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  // Đóng modal khi click ra ngoài vùng xám
+  modal.addEventListener('click', (e) => {
+    if(e.target === modal) {
+      modal.classList.remove('active');
+    }
+  });
+</script>
+
+</body>
+</html>
